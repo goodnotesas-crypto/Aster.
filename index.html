@@ -12,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <script>
-        // --- 1. Firebase 設定 (保持不變) ---
+        // --- 1. Firebase 設定 ---
         const firebaseConfig = {
           apiKey: "AIzaSyCiYsU8NpuEV9Eo5QiKJU-GOt5BJjCCcwg",
           authDomain: "dongbei-travel.firebaseapp.com",
@@ -50,7 +50,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; background-color: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* 鎖定畫面樣式 */
         #lock-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg); z-index: 9999;
@@ -76,7 +75,12 @@
         .timeline-item::before { content: ''; position: absolute; left: -6px; top: 0; width: 10px; height: 10px; background: var(--primary); border-radius: 50%; }
         .time-tag { background: var(--bg); color: var(--text-light); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; display: inline-block; margin-bottom: 5px; }
         .location-link { display: inline-block; margin-top: 5px; color: white; background-color: #4285F4; padding: 4px 10px; border-radius: 12px; text-decoration: none; font-size: 0.8rem; }
-        .link-btn { display: inline-block; margin-top: 5px; padding: 4px 10px; background-color: #e3f2fd; color: #1976d2; border-radius: 8px; text-decoration: none; font-size: 0.8rem; border: 1px solid #bbdefb; }
+        
+        /* 按鈕樣式更新 */
+        .link-btn { display: inline-block; margin-top: 5px; padding: 4px 10px; border-radius: 8px; text-decoration: none; font-size: 0.8rem; margin-right: 5px;}
+        .btn-map { background-color: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
+        .btn-info { background-color: #f3e5f5; color: #7b1fa2; border: 1px solid #e1bee7; }
+        
         .link-input { width: 100%; margin-top: 5px; padding: 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.8rem; background: #fafafa; }
         
         /* 圖片預覽 */
@@ -223,7 +227,7 @@
 </div>
 
 <script>
-    // --- ★★★ 設定密碼 (預設 2026) ★★★ ---
+    // --- 設定密碼 ---
     const APP_PASSWORD = "2026";
 
     function checkPassword() {
@@ -231,14 +235,13 @@
         if (input === APP_PASSWORD) {
             document.getElementById('lock-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'flex';
-            localStorage.setItem('trip_unlocked', 'true'); // 記住解鎖狀態
+            localStorage.setItem('trip_unlocked', 'true'); 
             init();
         } else {
             document.getElementById('pass-error').style.display = 'block';
         }
     }
 
-    // 自動登入檢查
     if(localStorage.getItem('trip_unlocked') === 'true') {
         document.getElementById('lock-screen').style.display = 'none';
         document.getElementById('main-app').style.display = 'flex';
@@ -255,13 +258,13 @@
         backup: `<ul><li>美食備選：道外區老字號</li><li>景點備選：哈爾濱大劇院 (外觀拍照)</li><li>長白山備案：如果天池不開，去地下森林</li><li>長春：這有山 (商場)</li></ul>`,
         links: `<p><b>長白山搶票:</b><br>微信搜尋小程式「长白山」(#小程序://长白山/wyxIYIegJjagaJv)</p><p><b>小紅書攻略:</b><br>中央大街攻略 <a href="http://xhslink.com/o/3fyzVg48HHu" target="_blank">點擊查看</a></p>`,
         itinerary: [
-            { day: "Day 0", date: "1/4 (日)", location: "哈爾濱", items: [{ time: "17:00", text: "落地哈爾濱 ✈️", img: "", link: "" }] },
-            { day: "Day 1", date: "1/5 (一)", location: "哈爾濱", items: [{ time: "下午", text: "❄️ 冰雪大世界 (必去)", img: "", link: "" }] },
-            { day: "Day 2", date: "1/6 (二)", location: "哈爾濱", items: [{ time: "中午", text: "中央大街", img: "", link: "http://xhslink.com/o/3fyzVg48HHu" }] },
-            { day: "Day 3", date: "1/7 (三)", location: "移動日", items: [{ time: "07:18", text: "高鐵 -> 長白山", img: "", link: "" }] },
-            { day: "Day 4", date: "1/8 (四)", location: "長白山", items: [{ time: "全日", text: "🏔️ 長白山北坡", img: "", link: "" }] },
-            { day: "Day 5", date: "1/9 (五)", location: "長白山", items: [{ time: "09:00", text: "雪嶺 (餵鹿)", img: "", link: "" }] },
-            { day: "Day 6", date: "1/10 (六)", location: "長春", items: [{ time: "下午", text: "高鐵 -> 長春", img: "", link: "" }] }
+            { day: "Day 0", date: "1/4 (日)", location: "哈爾濱", items: [{ time: "17:00", text: "落地哈爾濱 ✈️", img: "", infoLink: "", mapLink: "" }] },
+            { day: "Day 1", date: "1/5 (一)", location: "哈爾濱", items: [{ time: "下午", text: "❄️ 冰雪大世界 (必去)", img: "", infoLink: "", mapLink: "" }] },
+            { day: "Day 2", date: "1/6 (二)", location: "哈爾濱", items: [{ time: "中午", text: "中央大街", img: "", infoLink: "http://xhslink.com/o/3fyzVg48HHu", mapLink: "" }] },
+            { day: "Day 3", date: "1/7 (三)", location: "移動日", items: [{ time: "07:18", text: "高鐵 -> 長白山", img: "", infoLink: "", mapLink: "" }] },
+            { day: "Day 4", date: "1/8 (四)", location: "長白山", items: [{ time: "全日", text: "🏔️ 長白山北坡", img: "", infoLink: "", mapLink: "" }] },
+            { day: "Day 5", date: "1/9 (五)", location: "長白山", items: [{ time: "09:00", text: "雪嶺 (餵鹿)", img: "", infoLink: "", mapLink: "" }] },
+            { day: "Day 6", date: "1/10 (六)", location: "長春", items: [{ time: "下午", text: "高鐵 -> 長春", img: "", infoLink: "", mapLink: "" }] }
         ]
     };
 
@@ -296,7 +299,6 @@
         });
     });
 
-    // 寫入雲端
     function pushToCloud() {
         if(!dbReady) return;
         document.getElementById('sync-status').innerText = "🟡 同步中...";
@@ -337,7 +339,6 @@
         if(document.activeElement.id !== 'useful-links') document.getElementById('useful-links').innerHTML = localData.links;
     }
 
-    // Todo Logic
     function renderTodos() {
         const list = document.getElementById('todo-list');
         list.innerHTML = '';
@@ -359,7 +360,6 @@
     window.updateTodoText = function(idx, txt) { localData.todos[idx].text = txt; pushToCloud(); }
     window.deleteTodo = function(idx) { if(confirm('刪除?')) { localData.todos.splice(idx, 1); pushToCloud(); } }
 
-    // Itinerary Logic
     function renderItineraryTabs() {
         const container = document.getElementById('day-tabs');
         if(container.children.length === 0) {
@@ -393,13 +393,24 @@
         `;
 
         dayData.items.forEach((item, itemIndex) => {
+            // 處理舊資料相容性：如果只有 link，則視為 infoLink
+            const infoUrl = item.infoLink || item.link || '';
+            const mapUrl = item.mapLink || '';
+
             html += `
                 <div class="timeline-item">
                     <div class="time-tag" contenteditable="${isEditMode}" onblur="updateItem(${dayIndex}, ${itemIndex}, 'time', this.innerText)">${item.time}</div>
                     <div style="font-size:1.1rem; margin-bottom:5px;" contenteditable="${isEditMode}" onblur="updateItem(${dayIndex}, ${itemIndex}, 'text', this.innerText)">${item.text}</div>
+                    
                     ${isEditMode 
-                        ? `<input type="text" class="link-input" placeholder="連結 (http://...)" value="${item.link||''}" onblur="updateItem(${dayIndex}, ${itemIndex}, 'link', this.value)">` 
-                        : (item.link ? `<a href="${item.link}" target="_blank" class="link-btn">🔗 開啟連結</a>` : '')
+                        ? `
+                           <input type="text" class="link-input" placeholder="🗺️ 貼上地圖連結..." value="${mapUrl}" onblur="updateItem(${dayIndex}, ${itemIndex}, 'mapLink', this.value)">
+                           <input type="text" class="link-input" placeholder="ℹ️ 貼上介紹連結..." value="${infoUrl}" onblur="updateItem(${dayIndex}, ${itemIndex}, 'infoLink', this.value)">
+                          ` 
+                        : `
+                           ${mapUrl ? `<a href="${mapUrl}" target="_blank" class="link-btn btn-map">🗺️ 地圖</a>` : ''}
+                           ${infoUrl ? `<a href="${infoUrl}" target="_blank" class="link-btn btn-info">ℹ️ 介紹</a>` : ''}
+                          `
                     }
                     
                     ${isEditMode ? `
@@ -426,7 +437,6 @@
         container.innerHTML = html;
     }
 
-    // Itinerary Updates
     window.toggleEditMode = function() {
         isEditMode = !isEditMode;
         document.getElementById('edit-mode-btn').innerText = isEditMode ? "✅ 完成編輯" : "✏️ 編輯行程";
@@ -434,10 +444,9 @@
     }
     window.updateItem = function(d, i, k, v) { localData.itinerary[d].items[i][k] = v; pushToCloud(); }
     window.updateDayTitle = function(d, k, v) { localData.itinerary[d][k] = v; pushToCloud(); }
-    window.addItineraryItem = function(d) { localData.itinerary[d].items.push({time:"時間", text:"新活動", img:"", link:""}); pushToCloud(); }
+    window.addItineraryItem = function(d) { localData.itinerary[d].items.push({time:"時間", text:"新活動", img:"", infoLink:"", mapLink:""}); pushToCloud(); }
     window.deleteItineraryItem = function(d, i) { if(confirm("確定刪除?")){ localData.itinerary[d].items.splice(i,1); pushToCloud(); } }
     
-    // Move Items Function
     window.moveItem = function(dayIdx, itemIdx, direction) {
         const items = localData.itinerary[dayIdx].items;
         if (direction === -1 && itemIdx > 0) {
@@ -451,7 +460,6 @@
         }
     }
 
-    // Image Upload
     window.uploadImage = function(input, d, i) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -474,7 +482,6 @@
         }
     }
 
-    // Lightbox Function
     window.openModal = function(src) {
         const modal = document.getElementById('imgModal');
         const modalImg = document.getElementById('modalImg');
@@ -485,7 +492,6 @@
         document.getElementById('imgModal').style.display = "none";
     }
 
-    // Helpers
     window.switchTab = function(pid, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pid).classList.add('active');
@@ -514,6 +520,8 @@
          link.download = 'trip_event.ics';
          link.click();
     }
+
+    init();
 </script>
 
 </body>
