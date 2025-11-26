@@ -5,42 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>東北冰雪之旅 2026 (同步版)</title>
+    <title>東北冰雪之旅 2026</title>
     
-    <!-- 引入 Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        
-        // --- 你的 Firebase 設定 ---
+    <!-- 使用 Firebase Compat 版本 (避免本地開啟時的 CORS 問題) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        // --- 1. Firebase 設定 ---
         const firebaseConfig = {
           apiKey: "AIzaSyCiYsU8NpuEV9Eo5QiKJU-GOt5BJjCCcwg",
           authDomain: "dongbei-travel.firebaseapp.com",
-          // 我幫你補上了預設的資料庫網址，如果無法連線，請去 Firebase 後台確認 databaseURL
-          databaseURL: "https://dongbei-travel-default-rtdb.asia-southeast1.firebasedatabase.app", 
+          // 我幫你補上了資料庫網址，這是必要的
+          databaseURL: "https://dongbei-travel-default-rtdb.asia-southeast1.firebasedatabase.app",
           projectId: "dongbei-travel",
           storageBucket: "dongbei-travel.firebasestorage.app",
           messagingSenderId: "154216136618",
           appId: "1:154216136618:web:c8e222b8bcc1d70475b5d3"
         };
-        // -----------------------
 
-        // 初始化 Firebase
+        // 初始化
         try {
-            const app = initializeApp(firebaseConfig);
-            const db = getDatabase(app);
-
-            // 公開資料庫功能給全域使用
-            window.db = db;
-            window.ref = ref;
-            window.set = set;
-            window.onValue = onValue;
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database();
             
-            // 通知主程式 Firebase 已準備好
-            window.dispatchEvent(new Event('firebase-ready'));
+            // 綁定到全域變數
+            window.db = db;
+            window.ref = (db, path) => firebase.database().ref(path);
+            window.set = (ref, val) => ref.set(val);
+            window.onValue = (ref, callback, errorCallback) => ref.on('value', callback, errorCallback);
+
+            console.log("Firebase 初始化成功");
+            
+            setTimeout(() => {
+                 window.dispatchEvent(new Event('firebase-ready'));
+            }, 500);
+
         } catch (e) {
-            console.error("Firebase 初始化失敗:", e);
-            alert("Firebase 連線設定有誤，請檢查 Console");
+            alert("Firebase 設定錯誤：" + e.message);
+            console.error(e);
         }
     </script>
 
@@ -69,10 +72,45 @@
         .location-link { display: inline-block; margin-top: 5px; color: white; background-color: #4285F4; padding: 4px 10px; border-radius: 12px; text-decoration: none; font-size: 0.8rem; }
         .link-btn { display: inline-block; margin-top: 5px; padding: 4px 10px; background-color: #e3f2fd; color: #1976d2; border-radius: 8px; text-decoration: none; font-size: 0.8rem; border: 1px solid #bbdefb; }
         .link-input { width: 100%; margin-top: 5px; padding: 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.8rem; background: #fafafa; }
+        
+        /* 圖片預覽 */
         .img-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px; background-color: #eee; display: flex; align-items: center; justify-content: center; color: #999; overflow: hidden; position: relative; }
-        .img-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .img-preview img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; } /* 指標變成放大鏡 */
+        
+        /* 燈箱 Modal (全螢幕圖片) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.95);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s;
+        }
+        .modal-content {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 3001;
+        }
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+
         .file-input { display: none; }
-        .upload-btn { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.5); color: white; padding: 5px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+        .upload-btn { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.5); color: white; padding: 5px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; pointer-events: auto; }
+        
         .todo-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; }
         .todo-item input[type="checkbox"] { margin-right: 10px; accent-color: var(--primary); }
         .todo-text { flex: 1; outline: none; }
@@ -87,7 +125,6 @@
         .btn-small { background: var(--text-light); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; }
         .page { display: none; }
         .page.active { display: block; }
-        /* 同步狀態指示燈 */
         #sync-status { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; z-index: 2000; pointer-events: none; }
     </style>
 </head>
@@ -161,6 +198,12 @@
     </div>
 </main>
 
+<!-- 圖片燈箱 Modal (點擊圖片後出現的區塊) -->
+<div id="imgModal" class="modal" onclick="closeModal()">
+    <span class="modal-close">&times;</span>
+    <img class="modal-content" id="modalImg">
+</div>
+
 <nav>
     <a href="#" class="nav-item active" onclick="switchTab('home', this)"><div class="nav-icon">🏠</div><div>首頁</div></a>
     <a href="#" class="nav-item" onclick="switchTab('itinerary', this)"><div class="nav-icon">📅</div><div>行程</div></a>
@@ -180,71 +223,17 @@
         backup: `<ul><li>美食備選：道外區老字號</li><li>景點備選：哈爾濱大劇院 (外觀拍照)</li><li>長白山備案：如果天池不開，去地下森林</li><li>長春：這有山 (商場)</li></ul>`,
         links: `<p><b>長白山搶票:</b><br>微信搜尋小程式「长白山」(#小程序://长白山/wyxIYIegJjagaJv)</p><p><b>小紅書攻略:</b><br>中央大街攻略 <a href="http://xhslink.com/o/3fyzVg48HHu" target="_blank">點擊查看</a></p>`,
         itinerary: [
-            { 
-                day: "Day 0", date: "1/4 (日)", location: "哈爾濱", 
-                items: [
-                    { time: "17:00", text: "落地哈爾濱 ✈️", img: "", link: "" },
-                    { time: "晚上", text: "星程酒店 Check-in", img: "", link: "" },
-                    { time: "晚餐", text: "酒店附近覓食 (鐵鍋燉/燒烤?)", img: "", link: "" }
-                ]
-            },
-            { 
-                day: "Day 1", date: "1/5 (一)", location: "哈爾濱", 
-                items: [
-                    { time: "早上", text: "紅磚早市 (人多可改日)", img: "", link: "" },
-                    { time: "上午", text: "731部隊罪證陳列館 (選去)", img: "", link: "" },
-                    { time: "下午", text: "❄️ 冰雪大世界 (必去)", img: "", link: "" },
-                    { time: "晚餐", text: "冰雪大世界內或市區", img: "", link: "" }
-                ]
-            },
-            { 
-                day: "Day 2", date: "1/6 (二)", location: "哈爾濱", 
-                items: [
-                    { time: "早上", text: "道里菜市場 / 其他早市", img: "", link: "" },
-                    { time: "上午", text: "索菲亞教堂 (拍照)", img: "", link: "" },
-                    { time: "中午", text: "中央大街 (馬迭爾冰棍、煙囪麵包)", img: "", link: "http://xhslink.com/o/3fyzVg48HHu" },
-                    { time: "下午", text: "防洪紀念塔 -> 松花江鐵路橋", img: "", link: "" },
-                    { time: "傍晚", text: "巴洛克風情街", img: "", link: "" }
-                ]
-            },
-            { 
-                day: "Day 3", date: "1/7 (三)", location: "移動日", 
-                items: [
-                    { time: "06:30", text: "出門！前往哈爾濱西站", img: "", link: "" },
-                    { time: "07:18", text: "高鐵 D123 (範例) -> 長白山", img: "", link: "" },
-                    { time: "下午", text: "雪絨花馴鹿公園 (冰瀑布)", img: "", link: "" },
-                    { time: "傍晚", text: "雲頂市集 / 美人松公園", img: "", link: "" }
-                ]
-            },
-            { 
-                day: "Day 4", date: "1/8 (四)", location: "長白山", 
-                items: [
-                    { time: "全日", text: "🏔️ 長白山北坡景區", img: "", link: "" },
-                    { time: "重點", text: "天池 (看運氣)", img: "", link: "" },
-                    { time: "景點", text: "長白瀑布、綠淵潭", img: "", link: "" },
-                    { time: "晚餐", text: "親親烤肉 / 朝鮮族美食", img: "", link: "" }
-                ]
-            },
-            { 
-                day: "Day 5", date: "1/9 (五)", location: "長白山", 
-                items: [
-                    { time: "09:00", text: "出發去雪嶺 (包車約$168)", img: "", link: "" },
-                    { time: "全日", text: "雪嶺 (餵鹿、雪地摩托)", img: "", link: "" },
-                    { time: "晚上", text: "回鎮上吃正談炸雞", img: "", link: "" }
-                ]
-            },
-            { 
-                day: "Day 6", date: "1/10 (六)", location: "長春", 
-                items: [
-                    { time: "早上", text: "睡個好覺 / 附近逛逛", img: "", link: "" },
-                    { time: "下午", text: "高鐵 -> 長春", img: "", link: "" },
-                    { time: "晚上", text: "入住漢庭 (長春站)", img: "", link: "" }
-                ]
-            }
+            { day: "Day 0", date: "1/4 (日)", location: "哈爾濱", items: [{ time: "17:00", text: "落地哈爾濱 ✈️", img: "", link: "" }] },
+            { day: "Day 1", date: "1/5 (一)", location: "哈爾濱", items: [{ time: "下午", text: "❄️ 冰雪大世界 (必去)", img: "", link: "" }] },
+            { day: "Day 2", date: "1/6 (二)", location: "哈爾濱", items: [{ time: "中午", text: "中央大街", img: "", link: "http://xhslink.com/o/3fyzVg48HHu" }] },
+            { day: "Day 3", date: "1/7 (三)", location: "移動日", items: [{ time: "07:18", text: "高鐵 -> 長白山", img: "", link: "" }] },
+            { day: "Day 4", date: "1/8 (四)", location: "長白山", items: [{ time: "全日", text: "🏔️ 長白山北坡", img: "", link: "" }] },
+            { day: "Day 5", date: "1/9 (五)", location: "長白山", items: [{ time: "09:00", text: "雪嶺 (餵鹿)", img: "", link: "" }] },
+            { day: "Day 6", date: "1/10 (六)", location: "長春", items: [{ time: "下午", text: "高鐵 -> 長春", img: "", link: "" }] }
         ]
     };
 
-    let localData = JSON.parse(JSON.stringify(defaultData)); // Deep copy
+    let localData = JSON.parse(JSON.stringify(defaultData)); 
     let isEditMode = false;
     let dbReady = false;
 
@@ -254,7 +243,6 @@
         const ref = window.ref;
         const onValue = window.onValue;
 
-        // 監聽雲端資料變更
         onValue(ref(db, 'trip2026'), (snapshot) => {
             const val = snapshot.val();
             document.getElementById('sync-status').innerText = "🟢 已連線雲端";
@@ -262,16 +250,12 @@
             dbReady = true;
 
             if (val) {
-                // 有資料，更新本地並渲染
                 localData = val;
-                // 確保結構完整 (避免刪除後欄位消失)
                 if(!localData.itinerary) localData.itinerary = defaultData.itinerary;
                 if(!localData.todos) localData.todos = [];
-                
                 renderAll();
                 console.log("已從雲端同步資料");
             } else {
-                // 資料庫是空的 (第一次使用)，寫入預設值
                 console.log("資料庫為空，寫入預設值");
                 window.set(ref(db, 'trip2026'), defaultData);
             }
@@ -284,10 +268,7 @@
 
     // 寫入雲端
     function pushToCloud() {
-        if(!dbReady) {
-            console.log("尚未連線，稍後重試");
-            return;
-        }
+        if(!dbReady) return;
         document.getElementById('sync-status').innerText = "🟡 同步中...";
         document.getElementById('sync-status').style.background = "rgba(255,165,0,0.6)";
         
@@ -296,11 +277,9 @@
              document.getElementById('sync-status').style.background = "rgba(0,128,0,0.6)";
         }).catch((err) => {
              document.getElementById('sync-status').innerText = "🔴 同步失敗";
-             alert("同步失敗，請檢查權限設定");
         });
     }
 
-    // 手動保存 HTML 內容 (給 contenteditable 區塊用)
     window.saveToCloud = function(key, content) {
         localData[key] = content;
         pushToCloud();
@@ -311,22 +290,18 @@
     function init() {
         renderCountdown();
         fetchWeather();
-        // 渲染日期
         const now = new Date();
         document.getElementById('today-date').innerText = "今天是 " + now.toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', weekday: 'long' });
-        // 初始渲染 (顯示載入中或預設值)
         renderAll();
     }
 
     function renderAll() {
         renderTodos();
         renderItineraryTabs();
-        // 找出目前顯示哪一天，重新渲染內容
         const currentTab = document.querySelector('.day-tab.active');
         const dayIndex = currentTab ? Array.from(document.querySelectorAll('.day-tab')).indexOf(currentTab) : 0;
         renderItineraryContent(dayIndex);
         
-        // 文字區塊 (如果使用者正在編輯該區塊，則暫不更新，避免游標跳掉)
         if(document.activeElement.id !== 'packing-list') document.getElementById('packing-list').innerHTML = localData.packing;
         if(document.activeElement.id !== 'backup-list') document.getElementById('backup-list').innerHTML = localData.backup;
         if(document.activeElement.id !== 'useful-links') document.getElementById('useful-links').innerHTML = localData.links;
@@ -357,7 +332,7 @@
     // Itinerary Logic
     function renderItineraryTabs() {
         const container = document.getElementById('day-tabs');
-        if(container.children.length === 0) { // 只在第一次或空的時候建立，避免一直閃爍
+        if(container.children.length === 0) {
             container.innerHTML = '';
             localData.itinerary.forEach((day, index) => {
                 const btn = document.createElement('button');
@@ -398,7 +373,10 @@
                     }
                     ${isEditMode ? `<button class="btn-small" style="background:#ff6b6b; margin-left:5px; margin-top:5px;" onclick="deleteItineraryItem(${dayIndex}, ${itemIndex})">刪除</button>` : ''}
                     <div class="img-preview">
-                        ${item.img ? `<img src="${item.img}">` : '<span>暫無圖片</span>'}
+                        ${item.img 
+                            ? `<img src="${item.img}" onclick="openModal('${item.img}')" alt="點擊放大">` 
+                            : '<span>暫無圖片</span>'
+                        }
                         ${isEditMode ? `<label class="upload-btn">📷 <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, ${dayIndex}, ${itemIndex})"></label>` : ''}
                     </div>
                 </div>
@@ -441,6 +419,17 @@
             }
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    // Lightbox Function
+    window.openModal = function(src) {
+        const modal = document.getElementById('imgModal');
+        const modalImg = document.getElementById('modalImg');
+        modal.style.display = "flex";
+        modalImg.src = src;
+    }
+    window.closeModal = function() {
+        document.getElementById('imgModal').style.display = "none";
     }
 
     // Helpers
