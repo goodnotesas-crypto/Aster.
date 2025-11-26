@@ -1,30 +1,20 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>東北冰雪之旅 2026</title>
-    
-    <!-- 使用 Firebase Compat 版本 (避免本地開啟時的 CORS 問題) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-    <script>
-        // --- 1. Firebase 設定 ---
+ <script>
+        // --- 1. Firebase 設定 (已整合你的金鑰) ---
         const firebaseConfig = {
           apiKey: "AIzaSyCiYsU8NpuEV9Eo5QiKJU-GOt5BJjCCcwg",
           authDomain: "dongbei-travel.firebaseapp.com",
-          // 我幫你補上了資料庫網址，這是必要的
+          
+          // ★★★ 注意：我幫你補上了預設的資料庫網址 ★★★
+          // 如果連線失敗，請去 Firebase Console 確認你的資料庫位置
           databaseURL: "https://dongbei-travel-default-rtdb.asia-southeast1.firebasedatabase.app",
+          
           projectId: "dongbei-travel",
           storageBucket: "dongbei-travel.firebasestorage.app",
           messagingSenderId: "154216136618",
           appId: "1:154216136618:web:c8e222b8bcc1d70475b5d3"
         };
 
-        // 初始化
+        // 初始化 Firebase
         try {
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
@@ -75,9 +65,9 @@
         
         /* 圖片預覽 */
         .img-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px; background-color: #eee; display: flex; align-items: center; justify-content: center; color: #999; overflow: hidden; position: relative; }
-        .img-preview img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; } /* 指標變成放大鏡 */
+        .img-preview img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; } 
         
-        /* 燈箱 Modal (全螢幕圖片) */
+        /* 燈箱 Modal */
         .modal {
             display: none;
             position: fixed;
@@ -399,7 +389,7 @@
     window.addItineraryItem = function(d) { localData.itinerary[d].items.push({time:"時間", text:"新活動", img:"", link:""}); pushToCloud(); }
     window.deleteItineraryItem = function(d, i) { if(confirm("確定刪除?")){ localData.itinerary[d].items.splice(i,1); pushToCloud(); } }
     
-    // Image Upload (Compress)
+    // Image Upload (High Quality Settings: 1024px, 0.8)
     window.uploadImage = function(input, d, i) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -409,11 +399,14 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    const scale = 400 / img.width; // Resize to 400px width
-                    canvas.width = 400;
+                    // 設定為 1024px 寬度，適合手機全螢幕
+                    const maxWidth = 1024; 
+                    const scale = maxWidth / img.width;
+                    canvas.width = maxWidth;
                     canvas.height = img.height * scale;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    localData.itinerary[d].items[i].img = canvas.toDataURL('image/jpeg', 0.6); // Low quality for DB size
+                    // 提升品質到 0.8 (高畫質)
+                    localData.itinerary[d].items[i].img = canvas.toDataURL('image/jpeg', 0.8); 
                     pushToCloud();
                 }
             }
