@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>哈爾濱 & 長白山 2026 (雲端同步版)</title>
+    <!-- 引入 Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <style>
+        /* (樣式保持不變，為了節省空間，這裡使用之前的樣式) */
+        :root { --primary: #C19A6B; --secondary: #E6C288; --bg: #FFF8E7; --card-bg: #FFFFFF; --text: #5C4033; --text-light: #8B7355; --accent: #D2691E; --safe-area-bottom: env(safe-area-inset-bottom); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; background-color: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        header { background: linear-gradient(to bottom, var(--primary), var(--secondary)); padding: 50px 20px 15px; color: white; text-align: center; font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 10px rgba(193, 154, 107, 0.3); flex-shrink: 0; }
+        main { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: calc(80px + var(--safe-area-bottom)); }
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 10px 0 calc(10px + var(--safe-area-bottom)); box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-light); text-decoration: none; flex: 1; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+        .nav-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(92, 64, 51, 0.08); position: relative; }
+        h2, h3 { margin-top: 0; color: var(--primary); }
+        .countdown-box { text-align: center; padding: 20px 0; }
+        .days-left { font-size: 3.5rem; font-weight: 800; color: var(--accent); line-height: 1; }
+        .sub-text { color: var(--text-light); font-size: 0.9rem; }
+        .day-tabs { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
+        .day-tab { background: rgba(255,255,255,0.6); border: 1px solid var(--primary); color: var(--primary); padding: 8px 16px; border-radius: 20px; white-space: nowrap; font-size: 0.9rem; }
+        .day-tab.active { background: var(--primary); color: white; }
+        .timeline-item { border-left: 2px solid var(--secondary); padding-left: 20px; margin-left: 10px; margin-bottom: 25px; position: relative; }
+        .timeline-item::before { content: ''; position: absolute; left: -6px; top: 0; width: 10px; height: 10px; background: var(--primary); border-radius: 50%; }
+        .time-tag { background: var(--bg); color: var(--text-light); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; display: inline-block; margin-bottom: 5px; }
+        .location-link { display: inline-block; margin-top: 5px; color: white; background-color: #4285F4; padding: 4px 10px; border-radius: 12px; text-decoration: none; font-size: 0.8rem; }
+        .link-btn { display: inline-block; margin-top: 5px; padding: 4px 10px; background-color: #e3f2fd; color: #1976d2; border-radius: 8px; text-decoration: none; font-size: 0.8rem; border: 1px solid #bbdefb; }
+        .link-input { width: 100%; margin-top: 5px; padding: 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.8rem; background: #fafafa; }
+        .img-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px; background-color: #eee; display: flex; align-items: center; justify-content: center; color: #999; overflow: hidden; position: relative; }
+        .img-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .file-input { display: none; }
+        .upload-btn { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.5); color: white; padding: 5px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+        .todo-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .todo-item input[type="checkbox"] { margin-right: 10px; accent-color: var(--primary); }
+        .todo-text { flex: 1; outline: none; }
+        .delete-btn { color: #ff6b6b; margin-left: 10px; cursor: pointer; }
+        .weather-widget { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #a8c0ff 0%, #3f2b96 100%); color: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .clothes-tips { background: #fff; padding: 15px; border-radius: 12px; font-size: 0.9rem; margin-top: 10px; border-left: 4px solid var(--accent); }
+        .ticket-btn { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; margin-top: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+        .editable-area { border: 1px dashed #ccc; padding: 10px; border-radius: 8px; min-height: 100px; background: #fafafa; outline: none; }
+        .editable-area:focus { background: white; border-color: var(--primary); }
+        [contenteditable="true"] { outline: none; border-bottom: 1px dashed #ccc; }
+        .edit-controls { text-align: right; margin-bottom: 10px; }
+        .btn-small { background: var(--text-light); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; }
+        .page { display: none; }
+        .page.active { display: block; }
+        /* 同步狀態指示燈 */
+        .sync-status { position: absolute; top: 15px; right: 15px; width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+        .sync-status.online { background: #4caf50; box-shadow: 0 0 5px #4caf50; }
+        .sync-status.offline { background: #f44336; }
+    </style>
+</head>
+<body>
+
+<header id="header-title">
+    2026 冰雪之旅 ❄️
+    <div id="sync-indicator" class="sync-status" title="連線狀態"></div>
+</header>
+
+<main>
+    <!-- 1. 首頁 -->
+    <div id="home" class="page active">
+        <div class="card countdown-box">
+            <div class="sub-text">距離 2026/1/5 出發還有</div>
+            <div class="days-left" id="countdown-display">--</div>
+            <div class="sub-text">天</div>
+            <div style="margin-top: 10px; font-weight: bold; color: var(--primary);" id="today-date"></div>
+        </div>
+
+        <div class="card">
+            <h3>☁️ 哈爾濱現在天氣</h3>
+            <div id="weather-api-display">載入中...</div>
+            <div class="clothes-tips" style="margin-top:15px; background:#f9f9f9;">
+                <strong>🧥 穿搭指南:</strong> -20°C 至 -30°C，建議洋蔥式穿法，外層防風防水，內層發熱，必備護耳帽、手套、雪地靴。
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>📝 重點待辦 (同步中)</h3>
+                <button class="btn-small" onclick="addTodo()">+</button>
+            </div>
+            <div id="todo-list">載入中...</div>
+        </div>
+        
+        <div class="card" style="border: 2px solid var(--accent);">
+            <h3>🎟️ 搶票提醒</h3>
+            <div class="timeline-item">
+                <div class="time-tag">12月24日 10:00 (預計)</div><br>
+                <b>哈爾濱西 -> 長白山</b><br>
+                <button class="ticket-btn" onclick="addToCalendar('搶高鐵票:哈爾濱-長白山', '2025-12-24T10:00:00', '2025-12-24T10:30:00', '12306 App')">📅 加入日曆</button>
+            </div>
+             <!-- 其他搶票提醒可在此加入 -->
+        </div>
+    </div>
+
+    <!-- 2. 行程表 -->
+    <div id="itinerary" class="page">
+        <div class="day-tabs" id="day-tabs"></div>
+        <div class="edit-controls">
+            <button class="btn-small" onclick="toggleEditMode()" id="edit-mode-btn">✏️ 編輯行程</button>
+        </div>
+        <div id="itinerary-content"></div>
+    </div>
+
+    <!-- 3. 住宿 -->
+    <div id="hotels" class="page">
+        <div class="card">
+            <h3>🏨 Day 0-6 (1/4-10) 哈爾濱</h3>
+            <h4>星程酒店（哈尔滨地铁站店）</h4>
+            <a href="https://uri.amap.com/search?keyword=星程酒店(哈尔滨地铁站店)" target="_blank" class="location-link">🚙 高德地圖導航</a>
+        </div>
+        <div class="card">
+            <h3>🏡 Day 7-9 (1/10-12) 長白山</h3>
+            <h4>青禾民宿</h4>
+            <a href="https://uri.amap.com/search?keyword=长白山北坡集散中心" target="_blank" class="location-link">🚙 高德地圖導航</a>
+        </div>
+         <div class="card">
+            <h3>🏨 Day 10-11 長春</h3>
+            <h4>汉庭酒店（长春火车站店）</h4>
+            <a href="https://uri.amap.com/search?keyword=汉庭酒店(长春火车站店)" target="_blank" class="location-link">🚙 高德地圖導航</a>
+        </div>
+    </div>
+
+    <!-- 4. 天氣資訊 -->
+    <div id="weather-info" class="page">
+        <div class="weather-widget">
+             <div><h2 style="color:white; margin:0;">哈爾濱</h2><span id="weather-temp-harbin" style="font-size:2.5rem; font-weight:bold;">--°</span></div>
+             <div style="text-align:right;"><div id="weather-desc-harbin">載入中...</div></div>
+        </div>
+        <div class="card">
+            <h3>🧣 裝備檢查清單 (同步中)</h3>
+            <div id="packing-list" class="editable-area" contenteditable="true" onblur="saveToCloud('packing')"></div>
+        </div>
+    </div>
+
+    <!-- 5. 備選行程 -->
+    <div id="backup" class="page">
+        <div class="card">
+            <h3>📂 備選行程 / 筆記 (同步中)</h3>
+            <div id="backup-list" class="editable-area" contenteditable="true" onblur="saveToCloud('backup')"></div>
+        </div>
+        <div class="card">
+            <h3>🔗 實用連結 (同步中)</h3>
+            <div id="useful-links" class="editable-area" contenteditable="true" onblur="saveToCloud('links')"></div>
+        </div>
+    </div>
+</main>
+
+<nav>
+    <a href="#" class="nav-item active" onclick="switchTab('home', this)"><div class="nav-icon">🏠</div><div>首頁</div></a>
+    <a href="#" class="nav-item" onclick="switchTab('itinerary', this)"><div class="nav-icon">📅</div><div>行程</div></a>
+    <a href="#" class="nav-item" onclick="switchTab('weather-info', this)"><div class="nav-icon">❄️</div><div>天氣</div></a>
+    <a href="#" class="nav-item" onclick="switchTab('hotels', this)"><div class="nav-icon">🏨</div><div>住宿</div></a>
+    <a href="#" class="nav-item" onclick="switchTab('backup', this)"><div class="nav-icon">📋</div><div>備忘</div></a>
+</nav>
+
+<script>
+    // ============================================
+    // ⚠️ 這裡最重要：請填入你的 Firebase 設定 ⚠️
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "請在此貼上 API Key",
+        authDomain: "你的專案ID.firebaseapp.com",
+        databaseURL: "https://你的專案ID-default-rtdb.firebaseio.com",
+        projectId: "你的專案ID",
+        storageBucket: "你的專案ID.appspot.com",
+        messagingSenderId: "...",
+        appId: "..."
+    };
+    // ============================================
+
+    // 初始化 Firebase
+    let db;
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        document.getElementById('sync-indicator').classList.add('online');
+    } catch(e) {
+        console.error("Firebase 初始化失敗，請檢查 Config", e);
+        document.getElementById('sync-indicator').classList.add('offline');
+        alert("尚未設定 Firebase Config，目前無法同步。");
+    }
+
+    // 資料與初始化
+    let todos = [];
+    let itinerary = [];
+    let isEditMode = false;
+
+    // 預設資料 (若資料庫全空時使用)
+    const initialItinerary = [
+        { day: "Day 0", date: "1/4 (日)", location: "哈爾濱", items: [{ time: "17:00", text: "落地哈爾濱", img: "", link: "" }] },
+        { day: "Day 1", date: "1/5 (一)", location: "哈爾濱", items: [{ time: "早上", text: "紅磚早市", img: "", link: "" }, { time: "下午", text: "冰雪大世界", img: "", link: "" }] },
+        { day: "Day 2", date: "1/6 (二)", location: "哈爾濱", items: [{ time: "早上", text: "中央大街", img: "", link: "" }] },
+        { day: "Day 3", date: "1/7 (三)", location: "移動", items: [{ time: "07:18", text: "高鐵去長白山", img: "", link: "" }] },
+        { day: "Day 4", date: "1/8 (四)", location: "長白山", items: [{ time: "全日", text: "長白山景區", img: "", link: "" }] },
+        { day: "Day 5", date: "1/9 (五)", location: "長白山", items: [{ time: "全日", text: "雪嶺", img: "", link: "" }] },
+        { day: "Day 6", date: "1/10 (六)", location: "長春", items: [{ time: "下午", text: "去長春", img: "", link: "" }] }
+    ];
+
+    function init() {
+        renderCountdown();
+        fetchWeather();
+        
+        // 監聽 Firebase 資料庫變化 (Realtime Sync!)
+        if(db) {
+            const rootRef = db.ref('trip_data');
+            
+            rootRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    todos = data.todos || [];
+                    itinerary = data.itinerary || initialItinerary;
+                    document.getElementById('packing-list').innerHTML = data.packing || "<li>點擊編輯裝備清單...</li>";
+                    document.getElementById('backup-list').innerHTML = data.backup || "<li>點擊編輯備選行程...</li>";
+                    document.getElementById('useful-links').innerHTML = data.links || "<p>點擊新增連結...</p>";
+                    
+                    renderTodos();
+                    renderItineraryTabs();
+                    // 保持當前分頁
+                    const currentIndex = document.getElementById('itinerary-content').dataset.currentIndex || 0;
+                    renderItineraryContent(parseInt(currentIndex));
+                } else {
+                    // 第一次使用，寫入預設值
+                    saveToCloud('itinerary', initialItinerary);
+                }
+            });
+        }
+
+        // 日期
+        const now = new Date();
+        document.getElementById('today-date').innerText = "今天是 " + now.toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', weekday: 'long' });
+    }
+
+    // --- 雲端儲存 Helper ---
+    function saveToCloud(key, value) {
+        if(!db) return;
+        
+        // 如果傳入兩個參數，是存特定 key；如果只有一個 key，則從 DOM 讀取 HTML 存入
+        let updateData = {};
+        
+        if (value !== undefined) {
+            updateData[key] = value;
+        } else {
+            // 處理 HTML 編輯區塊 (packing, backup, links)
+            if (key === 'packing') updateData['packing'] = document.getElementById('packing-list').innerHTML;
+            if (key === 'backup') updateData['backup'] = document.getElementById('backup-list').innerHTML;
+            if (key === 'links') updateData['links'] = document.getElementById('useful-links').innerHTML;
+        }
+
+        db.ref('trip_data').update(updateData);
+    }
+
+    // --- 基本 UI 功能 (大部分相同，但儲存邏輯改為 saveToCloud) ---
+
+    window.switchTab = function(pageId, element) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    function renderCountdown() {
+        const diff = new Date("2026-01-05T00:00:00").getTime() - new Date().getTime();
+        const days = Math.ceil(diff / (86400000));
+        document.getElementById('countdown-display').innerText = days > 0 ? days : (days > -7 ? "旅程中" : "已結束");
+    }
+
+    async function fetchWeather() {
+        try {
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=45.75&longitude=126.63&current_weather=true`);
+            const data = await res.json();
+            const temp = data.current_weather.temperature;
+            document.getElementById('weather-api-display').innerHTML = `<span style="font-size:1.5rem; font-weight:bold;">${temp}°C</span>`;
+            document.getElementById('weather-temp-harbin').innerText = `${temp}°`;
+            document.getElementById('weather-desc-harbin').innerText = "已更新";
+        } catch (e) { document.getElementById('weather-api-display').innerText = "天氣載入失敗"; }
+    }
+
+    // 待辦事項
+    function renderTodos() {
+        const list = document.getElementById('todo-list');
+        list.innerHTML = '';
+        todos.forEach((todo, index) => {
+            const div = document.createElement('div');
+            div.className = 'todo-item';
+            div.innerHTML = `
+                <input type="checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo(${index})">
+                <span class="todo-text" contenteditable="true" onblur="updateTodoText(${index}, this.innerText)" style="text-decoration: ${todo.done ? 'line-through' : 'none'}; color: ${todo.done ? '#ccc' : 'inherit'}">${todo.text}</span>
+                <span class="delete-btn" onclick="deleteTodo(${index})">✕</span>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    window.addTodo = function() {
+        todos.push({ text: "新事項...", done: false });
+        saveToCloud('todos', todos);
+    }
+    window.toggleTodo = function(index) {
+        todos[index].done = !todos[index].done;
+        saveToCloud('todos', todos);
+    }
+    window.updateTodoText = function(index, text) {
+        todos[index].text = text;
+        saveToCloud('todos', todos);
+    }
+    window.deleteTodo = function(index) {
+        if(confirm('刪除?')) { todos.splice(index, 1); saveToCloud('todos', todos); }
+    }
+
+    // 行程表
+    function renderItineraryTabs() {
+        const container = document.getElementById('day-tabs');
+        if(container.children.length === 0) { // 避免重繪導致閃爍
+             itinerary.forEach((day, index) => {
+                const btn = document.createElement('button');
+                btn.className = `day-tab ${index === 0 ? 'active' : ''}`;
+                btn.innerText = day.day;
+                btn.onclick = () => {
+                    document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderItineraryContent(index);
+                };
+                container.appendChild(btn);
+            });
+        }
+    }
+
+    function renderItineraryContent(dayIndex) {
+        const dayData = itinerary[dayIndex];
+        const container = document.getElementById('itinerary-content');
+        container.dataset.currentIndex = dayIndex;
+        
+        let html = `
+            <div class="card" style="border-top: 5px solid var(--primary);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 contenteditable="${isEditMode}" onblur="updateDayTitle(${dayIndex}, 'location', this.innerText)">${dayData.location}</h2>
+                    <span style="color:var(--text-light); font-weight:bold;">${dayData.date}</span>
+                </div>
+                <div>`;
+
+        dayData.items.forEach((item, itemIndex) => {
+            html += `
+                <div class="timeline-item">
+                    <div class="time-tag" contenteditable="${isEditMode}" onblur="updateItem(${dayIndex}, ${itemIndex}, 'time', this.innerText)">${item.time}</div>
+                    <div style="font-size:1.1rem; margin-bottom:5px;" contenteditable="${isEditMode}" onblur="updateItem(${dayIndex}, ${itemIndex}, 'text', this.innerText)">${item.text}</div>
+                    ${isEditMode 
+                        ? `<input type="text" class="link-input" placeholder="連結..." value="${item.link||''}" onblur="updateItem(${dayIndex}, ${itemIndex}, 'link', this.value)">` 
+                        : (item.link ? `<a href="${item.link}" target="_blank" class="link-btn">🔗 連結</a>` : '')}
+                    ${isEditMode ? `<button class="btn-small" style="background:#ff6b6b; margin-top:5px;" onclick="deleteItineraryItem(${dayIndex}, ${itemIndex})">刪除</button>` : ''}
+                    <div class="img-preview" id="img-${dayIndex}-${itemIndex}">
+                        ${item.img ? `<img src="${item.img}">` : '<span>無圖</span>'}
+                        ${isEditMode ? `<label class="upload-btn">📷 <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, ${dayIndex}, ${itemIndex})"></label>` : ''}
+                    </div>
+                </div>`;
+        });
+
+        if(isEditMode) html += `<button class="btn-small" style="width:100%; margin-top:10px; background:var(--secondary);" onclick="addItineraryItem(${dayIndex})">+ 新增</button>`;
+        html += `</div></div>`;
+        container.innerHTML = html;
+    }
+
+    window.toggleEditMode = function() {
+        isEditMode = !isEditMode;
+        document.getElementById('edit-mode-btn').innerText = isEditMode ? "✅ 完成" : "✏️ 編輯";
+        renderItineraryContent(parseInt(document.getElementById('itinerary-content').dataset.currentIndex || 0));
+    }
+
+    // 行程更新 - 任何變動都直接 saveToCloud
+    window.updateItem = function(d, i, k, v) { itinerary[d].items[i][k] = v; saveToCloud('itinerary', itinerary); }
+    window.updateDayTitle = function(d, k, v) { itinerary[d][k] = v; saveToCloud('itinerary', itinerary); }
+    window.addItineraryItem = function(d) { itinerary[d].items.push({time:"時間", text:"新活動", img:"", link:""}); saveToCloud('itinerary', itinerary); renderItineraryContent(d); }
+    window.deleteItineraryItem = function(d, i) { if(confirm("刪除?")) { itinerary[d].items.splice(i, 1); saveToCloud('itinerary', itinerary); renderItineraryContent(d); } }
+
+    window.uploadImage = function(input, d, i) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image(); img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const scale = 500 / img.width; 
+                    canvas.width = 500; canvas.height = img.height * scale;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    itinerary[d].items[i].img = canvas.toDataURL('image/jpeg', 0.6); // 壓縮更小以利雲端傳輸
+                    saveToCloud('itinerary', itinerary);
+                    renderItineraryContent(d);
+                }
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // 日曆功能
+    window.addToCalendar = function(title, start, end, desc) {
+        const format = t => t.replace(/[-:]/g, "").split('.')[0];
+        const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART:${format(start)}\nDTEND:${format(end)}\nSUMMARY:${title}\nDESCRIPTION:${desc}\nEND:VEVENT\nEND:VCALENDAR`;
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(new Blob([ics], {type: 'text/calendar'}));
+        link.setAttribute('download', 'trip.ics');
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    init();
+</script>
+</body>
+</html>
