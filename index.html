@@ -5,37 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>東北冰雪之旅 2026 (雲端同步版)</title>
+    <title>東北冰雪之旅 2026 (同步版)</title>
     
     <!-- 引入 Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         
-        // --- 你的專屬 Firebase 設定 ---
+        // --- 你的 Firebase 設定 ---
         const firebaseConfig = {
-          apiKey: "AIzaSyCRsLRA7gB2rao7Q-D3SYQDYnUhkg4FzpU",
-          authDomain: "dongbei-jan.firebaseapp.com",
-          databaseURL: "https://dongbei-jan-default-rtdb.asia-southeast1.firebasedatabase.app",
-          projectId: "dongbei-jan",
-          storageBucket: "dongbei-jan.firebasestorage.app",
-          messagingSenderId: "917428076330",
-          appId: "1:917428076330:web:2bca76b2fda90636802853"
+          apiKey: "AIzaSyCiYsU8NpuEV9Eo5QiKJU-GOt5BJjCCcwg",
+          authDomain: "dongbei-travel.firebaseapp.com",
+          // 我幫你補上了預設的資料庫網址，如果無法連線，請去 Firebase 後台確認 databaseURL
+          databaseURL: "https://dongbei-travel-default-rtdb.asia-southeast1.firebasedatabase.app", 
+          projectId: "dongbei-travel",
+          storageBucket: "dongbei-travel.firebasestorage.app",
+          messagingSenderId: "154216136618",
+          appId: "1:154216136618:web:c8e222b8bcc1d70475b5d3"
         };
-        // ---------------------------
+        // -----------------------
 
         // 初始化 Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
 
-        // 公開資料庫功能給全域使用
-        window.db = db;
-        window.ref = ref;
-        window.set = set;
-        window.onValue = onValue;
-        
-        // 通知主程式 Firebase 已準備好
-        window.dispatchEvent(new Event('firebase-ready'));
+            // 公開資料庫功能給全域使用
+            window.db = db;
+            window.ref = ref;
+            window.set = set;
+            window.onValue = onValue;
+            
+            // 通知主程式 Firebase 已準備好
+            window.dispatchEvent(new Event('firebase-ready'));
+        } catch (e) {
+            console.error("Firebase 初始化失敗:", e);
+            alert("Firebase 連線設定有誤，請檢查 Console");
+        }
     </script>
 
     <style>
@@ -81,13 +87,14 @@
         .btn-small { background: var(--text-light); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; }
         .page { display: none; }
         .page.active { display: block; }
+        /* 同步狀態指示燈 */
         #sync-status { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; z-index: 2000; pointer-events: none; }
     </style>
 </head>
 <body>
 
 <div id="sync-status">連線中...</div>
-<header id="header-title">2026 東北冰雪之旅 ❄️</header>
+<header id="header-title">2026 冰雪之旅 ❄️</header>
 
 <main>
     <!-- 1. 首頁 -->
@@ -118,10 +125,10 @@
         </div>
         <div class="card" style="border: 2px solid var(--accent);">
             <h3>🎟️ 搶票提醒</h3>
-            <div class="timeline-item"><div class="time-tag">12/24 10:00</div><br><b>哈爾濱西 -> 長白山</b> (1/7 07:18車次)<br><button class="ticket-btn" onclick="addToCalendar('搶高鐵票:哈爾濱-長白山', '2025-12-24T10:00:00', '2025-12-24T10:30:00', '12306 App')">📅 加入日曆</button></div>
+            <div class="timeline-item"><div class="time-tag">12/24 10:00</div><br><b>哈爾濱西 -> 長白山</b><br><button class="ticket-btn" onclick="addToCalendar('搶高鐵票:哈爾濱-長白山', '2025-12-24T10:00:00', '2025-12-24T10:30:00', '12306 App')">📅 加入日曆</button></div>
             <div class="timeline-item"><div class="time-tag">12/24 18:00</div><br><b>長白山景區門票 (1/8入園)</b><br><button class="ticket-btn" onclick="addToCalendar('搶景區票:長白山1/8', '2025-12-24T18:00:00', '2025-12-24T18:30:00', '微信小程式: 長白山')">📅 加入日曆</button></div>
             <div class="timeline-item"><div class="time-tag">12/25 18:00</div><br><b>長白山景區門票 (1/9入園)</b><br><button class="ticket-btn" onclick="addToCalendar('搶景區票:長白山1/9', '2025-12-25T18:00:00', '2025-12-25T18:30:00', '微信小程式: 長白山')">📅 加入日曆</button></div>
-            <div class="timeline-item"><div class="time-tag">12/27 (待定)</div><br><b>長白山 -> 長春</b> (1/10 車次)<br><button class="ticket-btn" onclick="addToCalendar('搶高鐵票:長白山-長春', '2025-12-27T10:00:00', '2025-12-27T10:30:00', '12306 App')">📅 加入日曆</button></div>
+            <div class="timeline-item"><div class="time-tag">12/27 (待定)</div><br><b>長白山 -> 長春</b><br><button class="ticket-btn" onclick="addToCalendar('搶高鐵票:長白山-長春', '2025-12-27T10:00:00', '2025-12-27T10:30:00', '12306 App')">📅 加入日曆</button></div>
         </div>
     </div>
 
@@ -167,20 +174,73 @@
     const defaultData = {
         todos: [
             { text: "買暖寶寶 (大量)", done: false },
-            { text: "訂高鐵票 (12/24)", done: false },
-            { text: "下載高德地圖 App", done: false }
+            { text: "訂高鐵票 (12/24)", done: false }
         ],
-        packing: `<ul style="padding-left:20px; line-height:1.8;"><li>發熱衣 x3 (Uniqlo Ultra Warm推薦)</li><li>羊毛襪 (多備幾雙)</li><li>滑雪手套 (一般手套沒用)</li><li>墨鏡 (雪盲症預防)</li><li>行動電源 + 暖寶寶貼手機 (低溫掉電快)</li><li>保溫杯 (潑水成冰用 / 喝熱水)</li><li>面膜 / 身體乳 (極度乾燥)</li><li>防水防滑雪地靴</li></ul>`,
+        packing: `<ul style="padding-left:20px;line-height:1.8;"><li>發熱衣 x3 (Uniqlo Ultra Warm推薦)</li><li>羊毛襪 (多備幾雙)</li><li>滑雪手套 (一般手套沒用)</li><li>墨鏡 (雪盲症預防)</li><li>行動電源 + 暖寶寶貼手機 (低溫掉電快)</li><li>保溫杯 (潑水成冰用 / 喝熱水)</li><li>面膜 / 身體乳 (極度乾燥)</li><li>防水防滑雪地靴</li></ul>`,
         backup: `<ul><li>美食備選：道外區老字號</li><li>景點備選：哈爾濱大劇院 (外觀拍照)</li><li>長白山備案：如果天池不開，去地下森林</li><li>長春：這有山 (商場)</li></ul>`,
         links: `<p><b>長白山搶票:</b><br>微信搜尋小程式「长白山」(#小程序://长白山/wyxIYIegJjagaJv)</p><p><b>小紅書攻略:</b><br>中央大街攻略 <a href="http://xhslink.com/o/3fyzVg48HHu" target="_blank">點擊查看</a></p>`,
         itinerary: [
-            { day: "Day 0", date: "1/4 (日)", location: "哈爾濱", items: [{ time: "17:00", text: "落地哈爾濱 ✈️", img: "", link: "" }, { time: "晚上", text: "星程酒店 Check-in", img: "", link: "" }, { time: "晚餐", text: "酒店附近覓食", img: "", link: "" }] },
-            { day: "Day 1", date: "1/5 (一)", location: "哈爾濱", items: [{ time: "早上", text: "紅磚早市", img: "", link: "" }, { time: "上午", text: "731部隊罪證陳列館", img: "", link: "" }, { time: "下午", text: "❄️ 冰雪大世界", img: "", link: "" }] },
-            { day: "Day 2", date: "1/6 (二)", location: "哈爾濱", items: [{ time: "早上", text: "道里菜市場", img: "", link: "" }, { time: "中午", text: "中央大街 (馬迭爾冰棍)", img: "", link: "http://xhslink.com/o/3fyzVg48HHu" }, { time: "下午", text: "防洪紀念塔 -> 鐵路橋", img: "", link: "" }, { time: "傍晚", text: "巴洛克風情街", img: "", link: "" }] },
-            { day: "Day 3", date: "1/7 (三)", location: "移動日", items: [{ time: "07:18", text: "高鐵 -> 長白山", img: "", link: "" }, { time: "下午", text: "雪絨花馴鹿公園 (冰瀑布)", img: "", link: "" }, { time: "傍晚", text: "雲頂市集", img: "", link: "" }] },
-            { day: "Day 4", date: "1/8 (四)", location: "長白山", items: [{ time: "全日", text: "🏔️ 長白山北坡", img: "", link: "" }, { time: "重點", text: "天池 (看運氣)", img: "", link: "" }, { time: "晚餐", text: "親親烤肉 / 朝鮮族美食", img: "", link: "" }] },
-            { day: "Day 5", date: "1/9 (五)", location: "長白山", items: [{ time: "09:00", text: "雪嶺 (包車約$168)", img: "", link: "" }, { time: "全日", text: "雪嶺 (餵鹿、雪地摩托)", img: "", link: "" }, { time: "晚上", text: "正談炸雞", img: "", link: "" }] },
-            { day: "Day 6", date: "1/10 (六)", location: "長春", items: [{ time: "下午", text: "高鐵 -> 長春", img: "", link: "" }, { time: "晚上", text: "入住漢庭 (長春站)", img: "", link: "" }] }
+            { 
+                day: "Day 0", date: "1/4 (日)", location: "哈爾濱", 
+                items: [
+                    { time: "17:00", text: "落地哈爾濱 ✈️", img: "", link: "" },
+                    { time: "晚上", text: "星程酒店 Check-in", img: "", link: "" },
+                    { time: "晚餐", text: "酒店附近覓食 (鐵鍋燉/燒烤?)", img: "", link: "" }
+                ]
+            },
+            { 
+                day: "Day 1", date: "1/5 (一)", location: "哈爾濱", 
+                items: [
+                    { time: "早上", text: "紅磚早市 (人多可改日)", img: "", link: "" },
+                    { time: "上午", text: "731部隊罪證陳列館 (選去)", img: "", link: "" },
+                    { time: "下午", text: "❄️ 冰雪大世界 (必去)", img: "", link: "" },
+                    { time: "晚餐", text: "冰雪大世界內或市區", img: "", link: "" }
+                ]
+            },
+            { 
+                day: "Day 2", date: "1/6 (二)", location: "哈爾濱", 
+                items: [
+                    { time: "早上", text: "道里菜市場 / 其他早市", img: "", link: "" },
+                    { time: "上午", text: "索菲亞教堂 (拍照)", img: "", link: "" },
+                    { time: "中午", text: "中央大街 (馬迭爾冰棍、煙囪麵包)", img: "", link: "http://xhslink.com/o/3fyzVg48HHu" },
+                    { time: "下午", text: "防洪紀念塔 -> 松花江鐵路橋", img: "", link: "" },
+                    { time: "傍晚", text: "巴洛克風情街", img: "", link: "" }
+                ]
+            },
+            { 
+                day: "Day 3", date: "1/7 (三)", location: "移動日", 
+                items: [
+                    { time: "06:30", text: "出門！前往哈爾濱西站", img: "", link: "" },
+                    { time: "07:18", text: "高鐵 D123 (範例) -> 長白山", img: "", link: "" },
+                    { time: "下午", text: "雪絨花馴鹿公園 (冰瀑布)", img: "", link: "" },
+                    { time: "傍晚", text: "雲頂市集 / 美人松公園", img: "", link: "" }
+                ]
+            },
+            { 
+                day: "Day 4", date: "1/8 (四)", location: "長白山", 
+                items: [
+                    { time: "全日", text: "🏔️ 長白山北坡景區", img: "", link: "" },
+                    { time: "重點", text: "天池 (看運氣)", img: "", link: "" },
+                    { time: "景點", text: "長白瀑布、綠淵潭", img: "", link: "" },
+                    { time: "晚餐", text: "親親烤肉 / 朝鮮族美食", img: "", link: "" }
+                ]
+            },
+            { 
+                day: "Day 5", date: "1/9 (五)", location: "長白山", 
+                items: [
+                    { time: "09:00", text: "出發去雪嶺 (包車約$168)", img: "", link: "" },
+                    { time: "全日", text: "雪嶺 (餵鹿、雪地摩托)", img: "", link: "" },
+                    { time: "晚上", text: "回鎮上吃正談炸雞", img: "", link: "" }
+                ]
+            },
+            { 
+                day: "Day 6", date: "1/10 (六)", location: "長春", 
+                items: [
+                    { time: "早上", text: "睡個好覺 / 附近逛逛", img: "", link: "" },
+                    { time: "下午", text: "高鐵 -> 長春", img: "", link: "" },
+                    { time: "晚上", text: "入住漢庭 (長春站)", img: "", link: "" }
+                ]
+            }
         ]
     };
 
@@ -194,13 +254,13 @@
         const ref = window.ref;
         const onValue = window.onValue;
 
-        document.getElementById('sync-status').innerText = "🟢 已連線雲端";
-        document.getElementById('sync-status').style.background = "rgba(0,128,0,0.6)";
-        dbReady = true;
-
         // 監聽雲端資料變更
         onValue(ref(db, 'trip2026'), (snapshot) => {
             const val = snapshot.val();
+            document.getElementById('sync-status').innerText = "🟢 已連線雲端";
+            document.getElementById('sync-status').style.background = "rgba(0,128,0,0.6)";
+            dbReady = true;
+
             if (val) {
                 // 有資料，更新本地並渲染
                 localData = val;
@@ -212,20 +272,31 @@
                 console.log("已從雲端同步資料");
             } else {
                 // 資料庫是空的 (第一次使用)，寫入預設值
+                console.log("資料庫為空，寫入預設值");
                 window.set(ref(db, 'trip2026'), defaultData);
             }
+        }, (error) => {
+             console.error(error);
+             document.getElementById('sync-status').innerText = "🔴 連線失敗";
+             document.getElementById('sync-status').style.background = "rgba(255,0,0,0.6)";
         });
     });
 
     // 寫入雲端
     function pushToCloud() {
         if(!dbReady) {
-            alert("尚未連線到資料庫，請檢查設定");
+            console.log("尚未連線，稍後重試");
             return;
         }
         document.getElementById('sync-status').innerText = "🟡 同步中...";
+        document.getElementById('sync-status').style.background = "rgba(255,165,0,0.6)";
+        
         window.set(window.ref(window.db, 'trip2026'), localData).then(() => {
-             document.getElementById('sync-status').innerText = "🟢 已連線雲端";
+             document.getElementById('sync-status').innerText = "🟢 已同步";
+             document.getElementById('sync-status').style.background = "rgba(0,128,0,0.6)";
+        }).catch((err) => {
+             document.getElementById('sync-status').innerText = "🔴 同步失敗";
+             alert("同步失敗，請檢查權限設定");
         });
     }
 
@@ -255,7 +326,7 @@
         const dayIndex = currentTab ? Array.from(document.querySelectorAll('.day-tab')).indexOf(currentTab) : 0;
         renderItineraryContent(dayIndex);
         
-        // 文字區塊
+        // 文字區塊 (如果使用者正在編輯該區塊，則暫不更新，避免游標跳掉)
         if(document.activeElement.id !== 'packing-list') document.getElementById('packing-list').innerHTML = localData.packing;
         if(document.activeElement.id !== 'backup-list') document.getElementById('backup-list').innerHTML = localData.backup;
         if(document.activeElement.id !== 'useful-links') document.getElementById('useful-links').innerHTML = localData.links;
@@ -265,6 +336,8 @@
     function renderTodos() {
         const list = document.getElementById('todo-list');
         list.innerHTML = '';
+        if(localData.todos.length === 0) list.innerHTML = '<div style="color:#999; text-align:center; padding:10px;">點擊 + 新增待辦</div>';
+        
         localData.todos.forEach((todo, index) => {
             const div = document.createElement('div');
             div.className = 'todo-item';
@@ -323,9 +396,9 @@
                         ? `<input type="text" class="link-input" placeholder="連結 (http://...)" value="${item.link||''}" onblur="updateItem(${dayIndex}, ${itemIndex}, 'link', this.value)">` 
                         : (item.link ? `<a href="${item.link}" target="_blank" class="link-btn">🔗 開啟連結</a>` : '')
                     }
-                    ${isEditMode ? `<button class="btn-small" style="background:#ff6b6b; margin-top:5px; margin-left:5px;" onclick="deleteItineraryItem(${dayIndex}, ${itemIndex})">刪除</button>` : ''}
+                    ${isEditMode ? `<button class="btn-small" style="background:#ff6b6b; margin-left:5px; margin-top:5px;" onclick="deleteItineraryItem(${dayIndex}, ${itemIndex})">刪除</button>` : ''}
                     <div class="img-preview">
-                        ${item.img ? `<img src="${item.img}">` : '<span>無圖片</span>'}
+                        ${item.img ? `<img src="${item.img}">` : '<span>暫無圖片</span>'}
                         ${isEditMode ? `<label class="upload-btn">📷 <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, ${dayIndex}, ${itemIndex})"></label>` : ''}
                     </div>
                 </div>
@@ -358,11 +431,11 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    const scale = 400 / img.width; // Resize to 400px width for database performance
+                    const scale = 400 / img.width; // Resize to 400px width
                     canvas.width = 400;
                     canvas.height = img.height * scale;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    localData.itinerary[d].items[i].img = canvas.toDataURL('image/jpeg', 0.6); 
+                    localData.itinerary[d].items[i].img = canvas.toDataURL('image/jpeg', 0.6); // Low quality for DB size
                     pushToCloud();
                 }
             }
@@ -389,10 +462,7 @@
             const d = await res.json();
             document.getElementById('weather-api-display').innerHTML = `<span style="font-size:1.5rem; font-weight:bold;">${d.current_weather.temperature}°C</span>`;
             document.getElementById('weather-temp-harbin').innerText = `${d.current_weather.temperature}°`;
-            // Weather Code Translation
-            const code = d.current_weather.weathercode;
-            let wText = "晴"; if(code>3)wText="多雲"; if(code>50)wText="雨/雪"; if(code>70)wText="雪❄️";
-            document.getElementById('weather-desc-harbin').innerText = wText;
+            document.getElementById('weather-desc-harbin').innerText = "天氣狀況代碼: " + d.current_weather.weathercode;
         } catch(e) { console.log(e); }
     }
     window.addToCalendar = function(title, start, end, desc) {
