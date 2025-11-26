@@ -12,13 +12,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <script>
-        // --- 1. Firebase 設定 (已整合你的金鑰) ---
+        // --- 1. Firebase 設定 ---
         const firebaseConfig = {
           apiKey: "AIzaSyCiYsU8NpuEV9Eo5QiKJU-GOt5BJjCCcwg",
           authDomain: "dongbei-travel.firebaseapp.com",
           
-          // ★★★ 注意：我幫你補上了預設的資料庫網址 ★★★
-          // 如果連線失敗，請去 Firebase Console 確認你的資料庫位置
+          // ★★★ 預設資料庫網址 ★★★
           databaseURL: "https://dongbei-travel-default-rtdb.asia-southeast1.firebasedatabase.app",
           
           projectId: "dongbei-travel",
@@ -81,34 +80,9 @@
         .img-preview img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; } 
         
         /* 燈箱 Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 3000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.95);
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.2s;
-        }
-        .modal-content {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 3001;
-        }
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); justify-content: center; align-items: center; animation: fadeIn 0.2s; }
+        .modal-content { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .modal-close { position: absolute; top: 20px; right: 30px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; z-index: 3001; }
         @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
 
         .file-input { display: none; }
@@ -124,8 +98,13 @@
         .editable-area { border: 1px dashed #ccc; padding: 10px; border-radius: 8px; min-height: 100px; background: #fafafa; outline: none; }
         .editable-area:focus { background: white; border-color: var(--primary); }
         [contenteditable="true"] { outline: none; border-bottom: 1px dashed #ccc; }
+
+        /* 編輯與移動按鈕樣式 (新增) */
         .edit-controls { text-align: right; margin-bottom: 10px; }
         .btn-small { background: var(--text-light); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; }
+        .move-controls { text-align: right; margin-top: 5px; }
+        .move-btn { background: #b0b0b0; margin-left: 2px; }
+
         .page { display: none; }
         .page.active { display: block; }
         #sync-status { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; z-index: 2000; pointer-events: none; }
@@ -201,7 +180,7 @@
     </div>
 </main>
 
-<!-- 圖片燈箱 Modal (點擊圖片後出現的區塊) -->
+<!-- 圖片燈箱 Modal -->
 <div id="imgModal" class="modal" onclick="closeModal()">
     <span class="modal-close">&times;</span>
     <img class="modal-content" id="modalImg">
@@ -374,7 +353,15 @@
                         ? `<input type="text" class="link-input" placeholder="連結 (http://...)" value="${item.link||''}" onblur="updateItem(${dayIndex}, ${itemIndex}, 'link', this.value)">` 
                         : (item.link ? `<a href="${item.link}" target="_blank" class="link-btn">🔗 開啟連結</a>` : '')
                     }
-                    ${isEditMode ? `<button class="btn-small" style="background:#ff6b6b; margin-left:5px; margin-top:5px;" onclick="deleteItineraryItem(${dayIndex}, ${itemIndex})">刪除</button>` : ''}
+                    
+                    ${isEditMode ? `
+                        <div class="move-controls">
+                            <button class="btn-small move-btn" onclick="moveItem(${dayIndex}, ${itemIndex}, -1)">⬆️</button>
+                            <button class="btn-small move-btn" onclick="moveItem(${dayIndex}, ${itemIndex}, 1)">⬇️</button>
+                            <button class="btn-small" style="background:#ff6b6b; margin-left:5px;" onclick="deleteItineraryItem(${dayIndex}, ${itemIndex})">刪除</button>
+                        </div>
+                    ` : ''}
+
                     <div class="img-preview">
                         ${item.img 
                             ? `<img src="${item.img}" onclick="openModal('${item.img}')" alt="點擊放大">` 
@@ -402,7 +389,24 @@
     window.addItineraryItem = function(d) { localData.itinerary[d].items.push({time:"時間", text:"新活動", img:"", link:""}); pushToCloud(); }
     window.deleteItineraryItem = function(d, i) { if(confirm("確定刪除?")){ localData.itinerary[d].items.splice(i,1); pushToCloud(); } }
     
-    // Image Upload (High Quality Settings: 1024px, 0.8)
+    // Move Items Function (排序功能)
+    window.moveItem = function(dayIdx, itemIdx, direction) {
+        const items = localData.itinerary[dayIdx].items;
+        // Check bounds
+        if (direction === -1 && itemIdx > 0) {
+            // Swap with previous
+            [items[itemIdx], items[itemIdx-1]] = [items[itemIdx-1], items[itemIdx]];
+            pushToCloud();
+            renderItineraryContent(dayIdx);
+        } else if (direction === 1 && itemIdx < items.length - 1) {
+            // Swap with next
+            [items[itemIdx], items[itemIdx+1]] = [items[itemIdx+1], items[itemIdx]];
+            pushToCloud();
+            renderItineraryContent(dayIdx);
+        }
+    }
+
+    // Image Upload (High Quality: 1024px, 0.8)
     window.uploadImage = function(input, d, i) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -412,13 +416,11 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    // 設定為 1024px 寬度，適合手機全螢幕
                     const maxWidth = 1024; 
                     const scale = maxWidth / img.width;
                     canvas.width = maxWidth;
                     canvas.height = img.height * scale;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    // 提升品質到 0.8 (高畫質)
                     localData.itinerary[d].items[i].img = canvas.toDataURL('image/jpeg', 0.8); 
                     pushToCloud();
                 }
