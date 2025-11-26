@@ -16,10 +16,8 @@
         const firebaseConfig = {
           apiKey: "AIzaSyCiYsU8NpuEV9Eo5QiKJU-GOt5BJjCCcwg",
           authDomain: "dongbei-travel.firebaseapp.com",
-          
-          // ★★★ 預設資料庫網址 ★★★
+          // 預設資料庫網址
           databaseURL: "https://dongbei-travel-default-rtdb.asia-southeast1.firebasedatabase.app",
-          
           projectId: "dongbei-travel",
           storageBucket: "dongbei-travel.firebasestorage.app",
           messagingSenderId: "154216136618",
@@ -99,11 +97,25 @@
         .editable-area:focus { background: white; border-color: var(--primary); }
         [contenteditable="true"] { outline: none; border-bottom: 1px dashed #ccc; }
 
-        /* 編輯與移動按鈕樣式 (新增) */
+        /* 編輯與移動按鈕樣式 */
         .edit-controls { text-align: right; margin-bottom: 10px; }
         .btn-small { background: var(--text-light); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; }
         .move-controls { text-align: right; margin-top: 5px; }
         .move-btn { background: #b0b0b0; margin-left: 2px; }
+        
+        /* 天氣連結按鈕 */
+        .ios-weather-btn {
+            display: block;
+            text-align: center;
+            background: rgba(255,255,255,0.8);
+            color: #007aff;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            border: 1px solid #cce5ff;
+        }
 
         .page { display: none; }
         .page.active { display: block; }
@@ -147,7 +159,8 @@
             <div class="timeline-item"><div class="time-tag">12/24 10:00</div><br><b>哈爾濱西 -> 長白山</b><br><button class="ticket-btn" onclick="addToCalendar('搶高鐵票:哈爾濱-長白山', '2025-12-24T10:00:00', '2025-12-24T10:30:00', '12306 App')">📅 加入日曆</button></div>
             <div class="timeline-item"><div class="time-tag">12/24 18:00</div><br><b>長白山景區門票 (1/8入園)</b><br><button class="ticket-btn" onclick="addToCalendar('搶景區票:長白山1/8', '2025-12-24T18:00:00', '2025-12-24T18:30:00', '微信小程式: 長白山')">📅 加入日曆</button></div>
             <div class="timeline-item"><div class="time-tag">12/25 18:00</div><br><b>長白山景區門票 (1/9入園)</b><br><button class="ticket-btn" onclick="addToCalendar('搶景區票:長白山1/9', '2025-12-25T18:00:00', '2025-12-25T18:30:00', '微信小程式: 長白山')">📅 加入日曆</button></div>
-            <div class="timeline-item"><div class="time-tag">12/27 16:30</div><br><b>長白山 -> 長春</b><br><button class="ticket-btn" onclick="addToCalendar('搶高鐵票:長白山-長春', '2025-12-27T10:00:00', '2025-12-27T10:30:00', '12306 App')">📅 加入日曆</button></div>
+            <!-- 更新搶票時間為 16:30 -->
+            <div class="timeline-item"><div class="time-tag">12/27 16:30</div><br><b>長白山 -> 長春</b><br><button class="ticket-btn" onclick="addToCalendar('搶高鐵票:長白山-長春', '2025-12-27T16:30:00', '2025-12-27T17:00:00', '12306 App')">📅 加入日曆</button></div>
         </div>
     </div>
 
@@ -160,16 +173,32 @@
         <div id="itinerary-content">載入資料中...</div>
     </div>
 
-    <!-- 3. 住宿 -->
+    <!-- 3. 住宿 (已更新連結) -->
     <div id="hotels" class="page">
-        <div class="card"><h3>🏨 Day 0-6 (1/4-10) 哈爾濱</h3><h4>星程酒店（哈尔滨地铁站店）</h4><a href="https://uri.amap.com/search?keyword=星程酒店(哈尔滨地铁站店)" target="_blank" class="location-link">🚙 高德地圖</a></div>
-        <div class="card"><h3>🏡 Day 7-9 (1/10-12) 長白山</h3><h4>青禾民宿（北坡集散中心店）</h4><a href="https://uri.amap.com/search?keyword=长白山北坡集散中心" target="_blank" class="location-link">🚙 高德地圖</a></div>
-        <div class="card"><h3>🏨 Day 10-11 (1/13-14) 長春</h3><h4>汉庭酒店（长春火车站店）</h4><a href="https://uri.amap.com/search?keyword=汉庭酒店(长春火车站店)" target="_blank" class="location-link">🚙 高德地圖</a></div>
+        <div class="card">
+            <h3>🏨 Day 0-6 (1/4-10) 哈爾濱</h3>
+            <h4>星程酒店（哈尔滨地铁站店）</h4>
+            <a href="https://surl.amap.com/4K0Gd5X1p6hx" target="_blank" class="location-link">🚙 高德地圖導航</a>
+        </div>
+        <div class="card">
+            <h3>🏡 Day 7-9 (1/10-12) 長白山</h3>
+            <h4>青禾民宿（北坡集散中心店）</h4>
+            <a href="https://surl.amap.com/4PKVpXLS9qA" target="_blank" class="location-link">🚙 高德地圖導航</a>
+        </div>
+        <div class="card">
+            <h3>🏨 Day 10-11 (1/13-14) 長春</h3>
+            <h4>汉庭酒店（长春火车站店）</h4>
+            <a href="https://surl.amap.com/56Wy1RHCeav" target="_blank" class="location-link">🚙 高德地圖導航</a>
+        </div>
     </div>
 
     <!-- 4. 天氣 -->
     <div id="weather-info" class="page">
         <div class="weather-widget"><div><h2 style="color:white; margin:0;">哈爾濱</h2><span id="weather-temp-harbin" style="font-size:2.5rem; font-weight:bold;">--°</span></div><div style="text-align:right;"><div id="weather-desc-harbin">--</div><div>濕度: <span id="weather-hum-harbin">--</span>%</div></div></div>
+        
+        <!-- 新增 iOS 天氣連結 -->
+        <a href="weather://" class="ios-weather-btn">🌤 開啟 iOS 天氣 App</a>
+        
         <div class="card"><div style="display:flex; justify-content:space-between; align-items:center;"><h3>🧣 裝備檢查 (同步)</h3><button class="btn-small" onclick="saveToCloud('packing', document.getElementById('packing-list').innerHTML)">💾 手動保存</button></div><div class="sub-text">(點擊編輯，自動同步可能稍有延遲)</div><div id="packing-list" class="editable-area" contenteditable="true">載入中...</div></div>
     </div>
 
@@ -389,17 +418,14 @@
     window.addItineraryItem = function(d) { localData.itinerary[d].items.push({time:"時間", text:"新活動", img:"", link:""}); pushToCloud(); }
     window.deleteItineraryItem = function(d, i) { if(confirm("確定刪除?")){ localData.itinerary[d].items.splice(i,1); pushToCloud(); } }
     
-    // Move Items Function (排序功能)
+    // Move Items Function
     window.moveItem = function(dayIdx, itemIdx, direction) {
         const items = localData.itinerary[dayIdx].items;
-        // Check bounds
         if (direction === -1 && itemIdx > 0) {
-            // Swap with previous
             [items[itemIdx], items[itemIdx-1]] = [items[itemIdx-1], items[itemIdx]];
             pushToCloud();
             renderItineraryContent(dayIdx);
         } else if (direction === 1 && itemIdx < items.length - 1) {
-            // Swap with next
             [items[itemIdx], items[itemIdx+1]] = [items[itemIdx+1], items[itemIdx]];
             pushToCloud();
             renderItineraryContent(dayIdx);
